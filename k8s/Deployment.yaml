@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaniko-demo
+  namespace: transact
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kaniko-demo
+  template:
+    metadata:
+      labels:
+        app: kaniko-demo
+    spec:
+      containers:
+      - name: app
+        image: 192.168.0.165:5000/kaniko-demo:latest
+        ports:
+        - containerPort: 6080
