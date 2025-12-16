@@ -7,12 +7,17 @@ kind: Pod
 spec:
   containers:
   - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
+    image: gcr.io/kaniko-project/executor:debug
+    imagePullPolicy: IfNotPresent
     command:
     - cat
     tty: true
-    args:
-    - "--insecure"
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /workspace
+  volumes:
+  - name: workspace-volume
+    emptyDir: {}
 """
     }
   }
