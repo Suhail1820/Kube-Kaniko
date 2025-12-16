@@ -8,15 +8,20 @@ spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
-    command:
-    - /busybox/sh
-    args:
-    - -c
-    - sleep 999999
+    command: ["/busybox/sh", "-c", "sleep 999999"]
     tty: true
     volumeMounts:
     - name: workspace-volume
       mountPath: /workspace
+
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command: ["sh", "-c", "sleep 999999"]
+    tty: true
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /workspace
+
   volumes:
   - name: workspace-volume
     emptyDir: {}
@@ -40,19 +45,6 @@ spec:
       }
     }
 
-    stage('Debug Workspace') {
-      steps {
-        container('kaniko') {
-          sh '''
-            echo "PWD:"
-            pwd
-            echo "FILES:"
-            ls -l
-          '''
-        }
-      }
-    }
-
     stage('Build & Push Image') {
       steps {
         container('kaniko') {
@@ -70,7 +62,7 @@ spec:
 
     stage('Deploy to Kubernetes') {
       steps {
-        container('kaniko') {
+        container('kubectl') {
           sh '''
             kubectl apply -f k8s/
           '''
