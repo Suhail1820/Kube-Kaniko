@@ -16,7 +16,7 @@ spec:
 
   - name: kubectl
     image: bitnami/kubectl:latest
-    command: ["sh", "-c", "sleep 999999"]
+    command: ["/bin/bash", "-c", "sleep 999999"]
     tty: true
     volumeMounts:
     - name: workspace-volume
