@@ -4,18 +4,11 @@ pipeline {
       yaml """
 apiVersion: v1
 kind: Pod
-metadata:
-  labels:
-    app: kaniko-build
 spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
-    command:
-    - /busybox/sh
-    args:
-    - -c
-    - sleep 999999
+    tty: true
     volumeMounts:
     - name: workspace-volume
       mountPath: /workspace
@@ -27,9 +20,9 @@ spec:
   }
 
   environment {
-    REGISTRY = "192.168.0.165:5000"
+    REGISTRY   = "192.168.0.165:5000"
     IMAGE_NAME = "kaniko-demo"
-    IMAGE_TAG = "latest"
+    IMAGE_TAG  = "latest"
   }
 
   stages {
@@ -46,9 +39,10 @@ spec:
       steps {
         container('kaniko') {
           sh '''
-            echo "WORKSPACE: $WORKSPACE"
+            echo "PWD:"
+            pwd
+            echo "Files:"
             ls -l
-            ls -l k8s || true
           '''
         }
       }
