@@ -1,62 +1,64 @@
 pipeline {
-    agent {
-        kubernetes {
-            label 'kaniko-kubectl'
-            defaultContainer 'jnlp'
-            yaml """
+  agent {
+    kubernetes {
+      label 'kaniko-kubectl'
+      defaultContainer 'jnlp'
+      yaml """
 apiVersion: v1
 kind: Pod
-metadata:
-  labels:
-    some-label: kaniko-kubectl
 spec:
+  serviceAccountName: jenkins
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
-    command:
-    - cat
+    command: ["cat"]
     tty: true
     volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker
+    - name: kaniko-secret
+      mountPath: /kaniko/.docker
+
   - name: kubectl
-    image: bitnami/kubectl:latest
-    command:
-    - cat
+    image: 192.168.0.165:5000/custom-kubectl-client:v1
+    command: ["cat"]
     tty: true
+
   volumes:
   - name: kaniko-secret
     emptyDir: {}
 """
+    }
+  }
+
+  environment {
+    REGISTRY = "192.168.0.165:5000"
+    IMAGE_NAME = "192.168.0.165:5000/kaniko-demo:latest"
+  }
+
+  stages {
+
+    stage('Build & Push Image') {
+      steps {
+        container('kaniko') {
+          sh '''
+            /kaniko/executor \
+              --context $(pwd) \
+              --dockerfile Dockerfile \
+              --destination ${IMAGE_NAME} \
+              --insecure
+          '''
         }
+      }
     }
 
-    environment {
-        REGISTRY = "192.168.0.165:5000"
-        IMAGE_NAME = "${REGISTRY}/kaniko-demo:latest"
-    }
-
-    stages {
-        stage('Build and Push Image') {
-            steps {
-                container('kaniko') {
-                    sh """
-                    /kaniko/executor \
-                    --context \$(pwd) \
-                    --dockerfile Dockerfile \
-                    --destination ${IMAGE_NAME} \
-                    --insecure
-                    """
-                }
-            }
+    stage('Deploy to Kubernetes') {
+      steps {
+        container('kubectl') {
+          sh '''
+            kubectl version --client
+            kubectl apply -f k8s/
+          '''
         }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                container('kubectl') {
-                    sh "kubectl apply -f k8s/"
-                }
-            }
-        }
+      }
     }
+  }
 }
