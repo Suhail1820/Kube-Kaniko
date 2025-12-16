@@ -13,13 +13,6 @@ spec:
     - --context=.
     - --destination=192.168.0.165:5000/kaniko-demo:latest
     - --insecure
-    volumeMounts:
-    - name: docker-config
-      mountPath: /kaniko/.docker
-  volumes:
-  - name: docker-config
-    secret:
-      secretName: registry-secret
 """
     }
   }
