@@ -7,7 +7,12 @@ kind: Pod
 spec:
   containers:
   - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - /busybox/sh
+    args:
+    - -c
+    - sleep 999999
     tty: true
     volumeMounts:
     - name: workspace-volume
@@ -41,7 +46,7 @@ spec:
           sh '''
             echo "PWD:"
             pwd
-            echo "Files:"
+            echo "FILES:"
             ls -l
           '''
         }
