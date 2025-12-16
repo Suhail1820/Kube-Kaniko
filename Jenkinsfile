@@ -8,23 +8,29 @@ spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
-    command: ["/busybox/sh", "-c", "sleep 999999"]
+    command:
+      - /busybox/sh
+      - -c
+      - sleep 999999
     tty: true
     volumeMounts:
-    - name: workspace-volume
-      mountPath: /workspace
+      - name: workspace-volume
+        mountPath: /workspace
 
   - name: kubectl
-    image: bitnami/kubectl:latest
-    command: ["/bin/bash", "-c", "sleep 999999"]
+    image: lachlanevenson/k8s-kubectl:v1.28.0
+    command:
+      - /bin/sh
+      - -c
+      - sleep 999999
     tty: true
     volumeMounts:
-    - name: workspace-volume
-      mountPath: /workspace
+      - name: workspace-volume
+        mountPath: /workspace
 
   volumes:
-  - name: workspace-volume
-    emptyDir: {}
+    - name: workspace-volume
+      emptyDir: {}
 """
     }
   }
@@ -49,6 +55,7 @@ spec:
       steps {
         container('kaniko') {
           sh '''
+            echo "Building image with Kaniko..."
             /kaniko/executor \
               --context=dir://$WORKSPACE \
               --dockerfile=$WORKSPACE/Dockerfile \
@@ -64,6 +71,7 @@ spec:
       steps {
         container('kubectl') {
           sh '''
+            echo "Deploying manifests..."
             kubectl apply -f k8s/
           '''
         }
