@@ -1,64 +1,19 @@
-pipeline {
-  agent {
-    kubernetes {
-      label 'kaniko-kubectl'
-      defaultContainer 'jnlp'
-      yaml """
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaniko-demo
 spec:
-  serviceAccountName: jenkins
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
-    command: ["cat"]
-    tty: true
-    volumeMounts:
-    - name: kaniko-secret
-      mountPath: /kaniko/.docker
-
-  - name: kubectl
-    image: 192.168.0.165:5000/custom-kubectl-client:v1
-    command: ["cat"]
-    tty: true
-
-  volumes:
-  - name: kaniko-secret
-    emptyDir: {}
-"""
-    }
-  }
-
-  environment {
-    REGISTRY = "192.168.0.165:5000"
-    IMAGE_NAME = "192.168.0.165:5000/kaniko-demo:latest"
-  }
-
-  stages {
-
-    stage('Build & Push Image') {
-      steps {
-        container('kaniko') {
-          sh '''
-            /kaniko/executor \
-              --context $(pwd) \
-              --dockerfile Dockerfile \
-              --destination ${IMAGE_NAME} \
-              --insecure
-          '''
-        }
-      }
-    }
-
-    stage('Deploy to Kubernetes') {
-      steps {
-        container('kubectl') {
-          sh '''
-            kubectl version --client
-            kubectl apply -f k8s/
-          '''
-        }
-      }
-    }
-  }
-}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kaniko-demo
+  template:
+    metadata:
+      labels:
+        app: kaniko-demo
+    spec:
+      containers:
+      - name: app
+        image: 192.168.0.165:5000/kaniko-demo:latest
+        ports:
+        - containerPort: 6080
