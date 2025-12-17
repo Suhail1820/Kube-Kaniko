@@ -18,7 +18,7 @@ spec:
         mountPath: /workspace
 
   - name: kubectl
-    image: lachlanevenson/k8s-kubectl:v1.28.0
+    image: 192.168.0.165:5000/custom-kubectl-client
     command:
       - /bin/sh
       - -c
